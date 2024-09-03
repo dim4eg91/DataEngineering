@@ -90,7 +90,7 @@ col_list = ",".join([func.format(col=col)+f" as {func_prefix}_{col}"for colin co
 
 ## Hardmode
 
-![IMG_6122.jpeg](https://prod-files-secure.s3.us-west-2.amazonaws.com/4f7c3174-5a9b-4b45-b7b7-59ecea8d9de0/f8725ba5-b4a1-457a-9012-b4627989e852/IMG_6122.jpeg)
+
 
 Предположим, всё в порядке, однако заказчик изменил техническое задание и также хочет, чтобы по атрибуту «статус» были созданы дополнительные поля. 
 
