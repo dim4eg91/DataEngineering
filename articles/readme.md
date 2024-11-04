@@ -1,4 +1,6 @@
-# Кейсы и статьи
+## Арсенал Data Engineer: Инструменты и примеры
+
+* **[SQL для Junior Data Engineers:](): Примеры бизнес задач**
 
 ## Кейсы
 * **[Python для SQL](python_for_sql_part_01.md)**
