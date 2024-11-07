@@ -17,12 +17,14 @@
 **Решение**: Использование подзапроса для фильтрации `client_id`, соответствующих последним поездкам.
 
 ```sql
-SELECT DISTINCT last_name, first_name
+SELECT 
+    last_name, 
+    first_name
 FROM clients
 WHERE client_id IN (
     SELECT DISTINCT client_id
     FROM drives
-    WHERE start_time >= '2024-01-01' AND start_time < '2024-02-01'
+    WHERE start_time >= CURRENT_DATE - INTERVAL '30 days'
 );
 ```
 Это позволяет быстро выделить тех, кто активно пользуется услугой, и сосредоточить маркетинговые усилия на актуальной аудитории.
@@ -36,15 +38,20 @@ WHERE client_id IN (
 **Решение**: Использование JOIN и CASE, чтобы автоматически классифицировать поездки по стоимости.
 
 ```sql
-SELECT c.first_name, c.last_name, d.start_location, d.end_location,
-       d.fare,
-       CASE
-           WHEN d.fare > 3000 THEN 'Дорогая'
-           ELSE 'Дешевая'
-       END AS fare_category
+SELECT 
+    c.client_id,
+    c.first_name, 
+    c.last_name, 
+    d.start_location, 
+    d.end_location,
+    d.fare,
+    CASE
+        WHEN d.fare > 3000 THEN 'Дорогая'
+        ELSE 'Дешевая'
+    END AS fare_category
 FROM clients AS c
 JOIN drives AS d ON c.client_id = d.client_id
-WHERE d.start_location = 'Москва';
+ORDER BY d.fare DESC;
 ```
 Этот запрос позволяет сегментировать данные, предоставляя аналитикам и маркетологам данные для точного таргетирования акций.
 
@@ -57,7 +64,10 @@ WHERE d.start_location = 'Москва';
 **Решение**: Использование группировки и HAVING, чтобы фильтровать клиентов на основе их общих затрат.
 
 ```sql
-SELECT c.first_name, c.last_name, SUM(d.fare) AS total_fare
+SELECT 
+    c.first_name, 
+    c.last_name, 
+    SUM(d.fare) AS total_fare
 FROM clients AS c
 JOIN drives AS d ON c.client_id = d.client_id
 GROUP BY c.first_name, c.last_name
@@ -74,8 +84,13 @@ HAVING SUM(d.fare) > 5000;
 **Решение**: Использование оконной функции ROW_NUMBER() для нумерации поездок каждого клиента по порядку.
 
 ```sql
-SELECT c.first_name, c.last_name, d.start_location, d.end_location, d.start_time,
-       ROW_NUMBER() OVER(PARTITION BY c.client_id ORDER BY d.start_time) AS trip_number
+SELECT 
+    c.first_name, 
+    c.last_name, 
+    d.start_location, 
+    d.end_location, 
+    d.start_time,
+    ROW_NUMBER() OVER(PARTITION BY c.client_id ORDER BY d.start_time) AS trip_number
 FROM clients AS c
 JOIN drives AS d ON c.client_id = d.client_id;
 ```
@@ -90,9 +105,25 @@ JOIN drives AS d ON c.client_id = d.client_id;
 **Решение**: Использование подзапроса с AVG, чтобы выбрать поездки выше средней стоимости.
 
 ```sql
-SELECT drive_id, client_id, fare
-FROM drives
+SELECT 
+    d.drive_id, 
+    client_id, 
+    fare
+FROM drives d
 WHERE fare > (SELECT AVG(fare) FROM drives);
+
+-- Другой вариант
+
+WITH avg_fare AS (
+    SELECT AVG(fare) AS avg_fare
+    FROM drives
+)
+SELECT 
+    d.drive_id, 
+    client_id, 
+    fare
+FROM drives d, avg_fare
+WHERE d.fare > avg_fare.avg_fare;
 ```
 Этот запрос быстро определяет поездки с высокими затратами, помогая команде по ценообразованию принимать решения.
 
@@ -105,7 +136,10 @@ WHERE fare > (SELECT AVG(fare) FROM drives);
 Решение: Использование подзапроса и HAVING для вычисления среднего количества поездок и фильтрации клиентов с количеством поездок выше среднего.
 
 ```sql
-SELECT c.first_name, c.last_name, COUNT(d.drive_id) AS num_of_trips
+SELECT 
+    c.first_name, 
+    c.last_name, 
+    COUNT(d.drive_id) AS num_of_trips
 FROM clients AS c
 JOIN drives AS d ON c.client_id = d.client_id
 GROUP BY c.first_name, c.last_name
@@ -113,6 +147,21 @@ HAVING COUNT(d.drive_id) > (
     SELECT AVG(num_trips) 
     FROM (SELECT client_id, COUNT(drive_id) AS num_trips FROM drives GROUP BY client_id) AS avg_trips
 );
+
+-- Вариант с CTE
+
+WITH avg_trips AS (
+    SELECT AVG(num_trips) AS avg_num_trips
+    FROM (SELECT client_id, COUNT(drive_id) AS num_trips FROM drives GROUP BY client_id) AS trips
+)
+SELECT 
+    c.first_name, 
+    c.last_name, 
+    COUNT(d.drive_id) AS num_of_trips
+FROM clients AS c
+JOIN drives AS d ON c.client_id = d.client_id
+GROUP BY c.first_name, c.last_name
+HAVING COUNT(d.drive_id) > (SELECT avg_num_trips FROM avg_trips);
 ```
 Этот запрос помогает выделить самых активных клиентов, на которых можно направить усилия программы лояльности.
 
@@ -125,11 +174,14 @@ HAVING COUNT(d.drive_id) > (
 **Решение**: Использование оконных функций MAX и SUM для агрегирования данных по каждому клиенту.
 
 ```sql
-SELECT c.first_name, c.last_name,
-       MAX(d.fare) OVER(PARTITION BY c.client_id) AS max_fare,
-       SUM(d.fare) OVER(PARTITION BY c.client_id) AS total_fare
+SELECT 
+    c.first_name, 
+    c.last_name,
+    MAX(d.fare) AS max_fare,
+    SUM(d.fare) AS total_fare
 FROM clients AS c
-JOIN drives AS d ON c.client_id = d.client_id;
+JOIN drives AS d ON c.client_id = d.client_id
+GROUP BY c.first_name, c.last_name;
 ```
 Это помогает строить точные профили для каждого клиента и разрабатывать предложения на основе их расходов.
 
