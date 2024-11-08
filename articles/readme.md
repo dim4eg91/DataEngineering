@@ -1,6 +1,10 @@
 ## Арсенал Data Engineer: Инструменты и примеры
 
-* **[SQL для Junior Data Engineers:](sql_for_junior_de.md): Примеры бизнес задач**
+* **[SQL для Junior Data Engineers](sql_for_junior_de.md): Примеры бизнес задач**
+
+## Data Engineer Toolbox: Основы и Структуры для Работы с Данные
+
+* **[Понимание реляционной модели данных](relation_model.md): Основы связей и структур данных в СУБД**
 
 ## Кейсы
 * **[Python для SQL](python_for_sql_part_01.md)**
