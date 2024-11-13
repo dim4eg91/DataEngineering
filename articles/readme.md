@@ -1,6 +1,7 @@
 ## Арсенал Data Engineer: Инструменты и примеры
 
 * **[SQL для Junior Data Engineers](sql_for_junior_de.md): Примеры бизнес задач**
+* **[Как настроить простой ETL-процесс на SQL и cron в PostgreSQL](cron_etl.md): Руководство для новичков**
 
 ## Data Engineer Toolbox: Основы и Структуры для Работы с Данные
 
